@@ -1,0 +1,12 @@
+{
+  "name": "byteserializer",
+  "description": "A simple cli tool that swiftly and fast serializes file by given character. Leveraging the power of streams and buffers, it ensures rapid character removal and file processing without compromising or chaning file integrity",
+  "devDependencies": {
+    "@types/node": "^20.11.27",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
+  },
+  "scripts": {
+    "start": "tsc && node dist/serialize.js"
+  }
+}
