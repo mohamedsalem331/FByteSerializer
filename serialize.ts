@@ -1,76 +1,100 @@
-import process from "node:process"
-import stream, { TransformCallback } from "node:stream"
-import fs from "fs"
+import process from "node:process";
+import stream, { TransformCallback } from "node:stream";
+import fs from "fs";
+import readline from "readline";
 
-// Set up the listener for SIGINT
-process.on("SIGINT", () => {
-  console.log("Process Stopped.");
-  process.exit(1);
+//ignore
+/**
+const buffer = Buffer.alloc(16); // Create a buffer of 16 bytes
+
+buffer.writeUInt8(55, 0);             // Write an unsigned 8-bit integer at offset 0
+buffer.writeUInt16LE(65000, 1);        // Write an unsigned 16-bit integer (little-endian) at offset 1
+
+const uint8 = buffer.readUInt8();               // Read an unsigned 8-bit integer from offset 0
+const uint16 = buffer.readUInt16LE(0);           // Read an unsigned 16-bit integer (little-endian) from offset 1
+
+*/
+
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
 });
 
-// receive input from user while process is running instead
+const promptUser = (query: any) => {
+  return new Promise((resolve) => {
+    rl.question(query, (answer) => {
+      resolve(answer);
+    });
+  });
+};
 
+// get user inputs
+const getUserInputs = async (): Promise<{
+  characterFlag: string;
+  filePath: string;
+}> => {
+  const characterFlag = (await promptUser("Enter the character to removed: ")) as string;
+  const filePath = (await promptUser("Enter the filepath: ")) as string;
 
-// Parse CLI arguments
-const args = process.argv.slice(2);
-const options: any = {};
-for (let i = 0; i < args.length; i++) {
-  if (args[i].startsWith("--")) {
-    const currArg = args[i].split("=");
-    options[currArg[0]] = currArg[1].trim();
-  } else {
-    console.info(
-      "Usage: node index.js --character= <unique_characters> --filepath= <path_to_file>/file.{extension}"
+  if (!characterFlag || !filePath) {
+    console.warn(
+      "Usage: npm start --character <unique_characters> --filepath <path_to_file>"
     );
     process.exit(1);
   }
-}
 
-const characterFlag = options["--character"];
-const filePath = options["--filepath"];
+  const options = { characterFlag, filePath };
 
-// validate the input
-if (!characterFlag || !filePath) {
-  console.info(
-    "Usage: node index.js --character <unique_characters> --filepath <path_to_file>"
-  );
-  process.exit(1);
-}
-const filePathSplit = filePath.split("\\");
-const fileName = filePathSplit[filePathSplit.length - 1];
+  return options;
+};
 
-const _fs = fs.createReadStream(filePath, { highWaterMark: 2000 });
-const _ws = fs.createWriteStream(`_${fileName}`);
-
-const removeCharsTransform = new stream.Transform({
-  transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
-    const filtered = chunk.filter(
-      (byte: number) => byte !== characterFlag.charCodeAt(0) && byte !== 0x00
-    );
-    console.log(filtered);
-
-    if (!this.push(filtered)) {
-      _fs.pause();
-    }
-    callback();
-  },
+rl.on("close", function () {
+  console.log("\nProcess Finished, BYE BYE!!");
+  process.exit(0);
 });
 
-_ws.on("drain", () => {
-  _fs.resume();
-});
+getUserInputs()
+  .then((result) => {
+    const { characterFlag, filePath } = result;
 
-_fs.pipe(removeCharsTransform).pipe(_ws);
+    const filePathSplit = filePath.split("\\");
+    const fileName = filePathSplit[filePathSplit.length - 1];
 
-// const rl = readline.createInterface({
-//   input: readStream,
-//   crlfDelay: Infinity  // Recognize all instances of CR LF ('\r\n') in input as a single line break.
-// });
+    const _fs = fs.createReadStream(filePath, { highWaterMark: 2000 });
+    const _ws = fs.createWriteStream(`_${fileName}`);
 
-//const buffer = Buffer.alloc(16); // Create a buffer of 16 bytes
+    const removeCharsTransform = new stream.Transform({
+      transform(
+        chunk: any,
+        encoding: BufferEncoding,
+        callback: TransformCallback
+      ) {
+        const filtered = chunk.filter(
+          (byte: number) => byte !== characterFlag.charCodeAt(0) && byte !== 0x00
+        );
 
-//buffer.writeUInt8(0xFF, 0);             // Write an unsigned 8-bit integer at offset 0
-//buffer.writeUInt16LE(65535, 1);        // Write an unsigned 16-bit integer (little-endian) at offset 1
+        if (!this.push(filtered)) {
+          _fs.pause();
+        }
 
-//const uint8 = buffer.readUInt8();               // Read an unsigned 8-bit integer from offset 0
-//const uint16 = buffer.readUInt16LE();           // Read an unsigned 16-bit integer (little-endian) from offset 1
+        callback();
+      },
+    });
+
+    _ws.on("drain", () => {
+      _fs.resume();
+    });
+
+    _fs.pipe(removeCharsTransform).pipe(_ws);
+
+    _fs.on("end", () => {
+      console.log("Finished");
+      rl.close();
+    });
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
+
