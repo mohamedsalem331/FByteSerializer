@@ -1,6 +1,6 @@
 # FByteSerializer
 
-A simple cli tool that swiftly and fast serializes file from a given character through process std input. Leveraging the power of streams and buffers, it ensures rapid character removal and file processing without compromising or altering file integrity.
+A simple cli tool that swiftly and fast serializes file from a given character through process std input. Leveraging the power of streams and buffers, rapid character removal and file processing without compromising or altering file integrity.
 
 ```bash
 npm start
