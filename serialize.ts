@@ -3,17 +3,16 @@ import stream, { TransformCallback } from "node:stream";
 import fs from "fs";
 import readline from "readline";
 
-//ignore
 /**
+* ignore
 const buffer = Buffer.alloc(16); // Create a buffer of 16 bytes
-
 buffer.writeUInt8(55, 0);             // Write an unsigned 8-bit integer at offset 0
 buffer.writeUInt16LE(65000, 1);        // Write an unsigned 16-bit integer (little-endian) at offset 1
-
 const uint8 = buffer.readUInt8();               // Read an unsigned 8-bit integer from offset 0
 const uint16 = buffer.readUInt16LE(0);           // Read an unsigned 16-bit integer (little-endian) from offset 1
+ */
 
-*/
+
 
 
 const rl = readline.createInterface({
